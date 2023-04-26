@@ -34,4 +34,65 @@ RSpec.describe 'Posts', type: :request do
       expect(response).to have_http_status(200)
     end
   end
+
+  describe 'POST /posts/' do
+    let(:user) { create(:user) }
+    let(:request) do
+      { post: {
+        title: 'Post to test creation',
+        content: 'Post created to test the creation using http method POST',
+        published: true,
+        user_id: user.id
+      } }
+    end
+
+    it 'creates a new post' do
+      post '/posts', params: request
+      payload = JSON.parse(response.body)
+      expect(payload).not_to be_empty
+      expect(payload['id']).not_to be_nil
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'returns a error message on invalid post' do
+      request[:post][:title] = nil
+
+      post '/posts', params: request
+      payload = JSON.parse(response.body)
+      expect(payload).not_to be_empty
+      expect(payload['error']).not_to be_empty
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  describe 'PUT /posts/{id}' do
+    let(:post_to_update) { create(:post) }
+    let(:request) do
+      { post: {
+        title: 'Post to test editing',
+        content: 'Post created to test the edition using http method POST',
+        published: true
+      } }
+    end
+
+    it 'updates a post' do
+      put "/posts/#{post_to_update[:id]}", params: request
+      payload = JSON.parse(response.body)
+      expect(payload).not_to be_empty
+      expect(payload['id']).to eq(post_to_update.id)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'returns an error updating an invalid post' do
+      request[:post][:title] = nil
+      request[:post][:content] = nil
+      request[:post][:published] = nil
+
+      put "/posts/#{post_to_update[:id]}", params: request
+      payload = JSON.parse(response.body)
+      expect(payload).not_to be_empty
+      expect(payload['error']).not_to be_empty
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
 end
