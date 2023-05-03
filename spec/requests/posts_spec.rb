@@ -12,9 +12,25 @@ RSpec.describe 'Posts', type: :request do
     end
   end
 
+  describe 'when get request comes with params (search)' do
+    let!(:post_hello) { create(:published_post, title: 'Hello World') }
+    let!(:post_rails) { create(:published_post, title: 'Hello Rails') }
+    let!(:post_course) { create(:published_post, title: 'Course Rails') }
+
+    before { get '/posts?search=Hello' }
+
+    it 'returns posts filtered by title' do
+      payload = JSON.parse(response.body)
+      expect(payload).to_not be_empty
+      expect(payload.size).to eq(2)
+      expect(payload.map { |p| p['id'] }.sort).to eq([post_hello.id, post_rails.id].sort)
+      expect(response).to have_http_status(200)
+    end
+  end
+
   describe 'with data in the DB' do
     let!(:posts) { create_list(:post, 10, published: true) }
-    before { get '/posts'}
+    before { get '/posts' }
 
     it 'should return all the published posts' do
       payload = JSON.parse(response.body)
