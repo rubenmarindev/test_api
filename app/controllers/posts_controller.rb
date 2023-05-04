@@ -31,11 +31,7 @@ class PostsController < ApplicationController
 
   #POST /posts/
   def create
-    pp Current.user
-
     @post = Current.user.posts.create!(create_params)
-
-    pp @post
 
     render json: @post, status: :created
   end
